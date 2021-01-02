@@ -2,6 +2,15 @@ var symbolSize = 20;
 var fadeInterval = 1.6;
 var streams = [];
 
+// defining capturer and fps count
+var fps = 60;
+var capturer = new CCapture({format: 'ffmpegserver', 
+                    framerate: fps,
+                    verbose: true,
+                    name: 'matrix_rain',
+                    extension: '.mp4',
+                    codec: 'mpeg4'});
+
 function setup() {
     createCanvas(
         window.innerWidth,
@@ -20,13 +29,38 @@ function setup() {
     }
     textFont('Consolas');
     textSize(symbolSize);
+    frameRate(fps);
+    capturer.start();
 }
 
+var startMillis;
+
 function draw() {
+    if (startMillis == null) {
+        startMillis = millis();
+    }
+
+    var duration = 6000;
+
+    var elapsed = millis() - startMillis;
+
+    var t = map(elapsed, 0, duration, 0, 1);
+
+    if (t > 1) {
+        noLoop();
+        console.log('Finished recording.');
+        capturer.stop();
+        capturer.save();
+        return;
+    }
+    
     background(0, 100); // backgroun (color, opacity)
     streams.forEach(function (stream) {
         stream.render();
     });
+    
+    console.log('Capturing the frame...');
+    capturer.capture(document.getElementById('defaultCanvas0'));
 }
 
 function Symbol(x, y, speed, first, opacity) {
